@@ -1,0 +1,113 @@
+rm(list = ls()) 
+library(DescTools)
+library(tidyverse)
+library(plotfunctions)
+library(tinytex)
+library(lubridate)
+library(ggrepel)
+library(ggplot2)
+library(hexbin)
+library(extrafont)
+master <- read.csv("owid-covid-data.csv")
+master <- rename(master, Country = location)
+master3 <- master |>
+  mutate(GDP_Status = case_when(
+    gdp_per_capita >= 35000 ~ "High",
+    gdp_per_capita >= 20000 ~ "Average",
+    gdp_per_capita >= 10000 ~ "Low",
+    gdp_per_capita < 10000 ~ "Lowest")
+  )
+
+master3 <- select(master3,Country,date,total_cases_per_million,total_deaths_per_million,gdp_per_capita, GDP_Status,median_age)
+master3 <- rename(master3,GDP_per_capita = gdp_per_capita)
+master3$date <- ymd(master3$date)
+master3 <- filter(master3, date == "2022-04-25")
+master3 <- filter(master3, !Country %in% c("World", "Africa", "Europe", "High income", "Low income",
+                                           "Lower middle income", "Micronesia (country)",
+                                           "North America", "Oceania", "Reunion",
+                                           "Saint Martin (French part)", "South America",
+                                           "Upper middle income", "United States Virgin Islands",
+                                           "Sint Maarten (Dutch part)", "Equatorial Guinea"))
+
+master3 <- filter(master3, Country %in% c("Norway","Singapore","Australia","Germany","Japan","United Arab Emirates",
+                                          "South Korea","Italy","Spain","Brazil","Mexico","Turkey","South Africa","India","Indonesia","Vietnam"))
+
+
+country_names = c("Norway","Singapore","Australia","Germany","Japan","United Arab Emirates",
+                  "South Korea","Italy","Spain","Brazil","Mexico","Turkey",
+                  "South Africa","India","Indonesia","Vietnam")
+
+subset_data <- master3[master3$Country %in% country_names, ]
+median_age <- aggregate(median_age ~ Country, data = subset_data, FUN = median, na.rm = TRUE)
+
+death_aggregate <- aggregate(total_cases_per_million ~ Country, data = subset_data, FUN = sum, na.rm = TRUE)
+
+
+Age_deaths <- merged_data <- merge(median_age, death_aggregate, by = "Country")
+Age_deaths$total_cases_per_million <- round(Age_deaths$total_cases_per_million)
+Age_deaths$median_age <- round(Age_deaths$median_age)
+
+
+#aggregate(data=master3,cbind(total_deaths_per_million,median_age)~Country,sum) just keep for refeence
+
+base = ggplot(Age_deaths, aes(y=median_age,x=total_cases_per_million)) 
+
+
+correlation_coefficient <- cor(Age_deaths$total_cases_per_million, Age_deaths$median_age, use = "complete.obs")
+print(correlation_coefficient)
+
+class(master3$GDP_per_capita)
+class(master3$GDP_per_capita)
+
+print <- cor.test(Age_deaths$total_cases_per_million, Age_deaths$median_age,method = "pearson")
+print(print)
+
+
+numericalplot1 <- ggplot(Age_deaths, aes(x = median_age, y = total_cases_per_million)) +
+  geom_point(aes(fill = Country), shape = 21, size = 4, color = "black", stroke = 1, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightblue") +
+  labs(
+    title = "Median Age vs. Cases per Million",
+    x = "Median Age",
+    y = "Cases per Million"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text.y = element_text(face = "bold")  # Bold axis labels
+  ) +
+  geom_text_repel(aes(label = Country), vjust = -0.5, size = 3)
+
+bivariate_final = numericalplot1 + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+bivariate_final
+
+
+
+
+
+
+write_csv(master2,"del1.5.csv")
+
+
+
+
+
+
+
+
+
+
+library(scales)
+
+
+
+#The scales all wrong probably an issue with aggregation or maybe the options(scipen=999)
+
+options(scipen=999)
+
+
+
+
+
