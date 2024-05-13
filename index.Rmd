@@ -14,7 +14,7 @@ library(flexdashboard) # always
 
 Preparing the dashboard based on the instructions given at @magallanes_reyes_data_2022, and @aden-buie_flexdashboard_2023.
 
-https://github.com/cbunker8/Final-Deliverables-Covid-19
+https://github.com/cbunker8/ChrisBunker-Final-Submission-690V
 
 ## Column {.tabset .tabset-fade}
 
